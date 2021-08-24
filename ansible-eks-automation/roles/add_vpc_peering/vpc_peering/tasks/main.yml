@@ -1,0 +1,100 @@
+---
+- name:                       Create intra-region VPC peering Connection
+  community.aws.ec2_vpc_peer:
+    region:                   "{{ cnx_region }}"
+    vpc_id:                   "{{ cnx_vpc_id }}"
+    peer_vpc_id:              "{{ eks_vpc_id }}"
+    peer_region:              "{{ eks_region}}"
+    state:                    present
+    tags:
+      Name:                   Peering connection for "{{ cnx_region }}" VPC to "{{ eks_region }}" VPC
+  register:                   vpc_peer
+
+- name:                       Pause for 3 seconds to make sure VPC Peering is created
+  pause:
+    seconds:                  3
+
+- name:                       Accept peering connection from peer region
+  community.aws.ec2_vpc_peer:
+    region:                   "{{ eks_region }}"
+    peering_id:               "{{ vpc_peer.peering_id }}"
+    state:                    accept
+  register:                   vpc_peer
+
+- name:                       CNX VPC details
+  ec2_vpc_net_facts:
+    region:                   "{{ cnx_region }}"
+    vpc_ids:                  "{{ cnx_vpc_id }}"
+  register:                   cnx_vpc_info
+
+- name:                       EKS/CP VPC details
+  ec2_vpc_net_facts:
+    region:                   "{{ eks_region }}"
+    vpc_ids:                  "{{ eks_vpc_id }}" 
+  register:                   cp_vpc_info
+
+- name:                       CNX VPC details
+  debug:
+    var:                      cnx_vpc_info
+
+- name:                       CP VPC details
+  debug:
+    var:                      cp_vpc_info
+
+- name:                       VPC CIDR
+  debug:
+    msg:                      "{{ item.cidr_block }}"
+  loop:                       "{{ cnx_vpc_info.vpcs[0].cidr_block_association_set }}"
+
+- name:                       VPC CIDR
+  debug:
+    msg:                      "{{ item.cidr_block }}"
+  loop:                       "{{ cp_vpc_info.vpcs[0].cidr_block_association_set }}"
+
+- name:                       CNX RT Info
+  community.aws.ec2_vpc_route_table_info:
+    region:                   "{{ cnx_region }}"
+    filters:
+      vpc-id:                 "{{ cnx_vpc_id }}"
+  register:                   cnx_rt_info
+
+- name:                       CP RT Info
+  community.aws.ec2_vpc_route_table_info:
+    region:                   "{{ eks_region }}"
+    filters:
+      vpc-id:                 "{{ eks_vpc_id }}"
+  register:                   cp_rt_info
+
+- name:                       CNX RT ID
+  debug:
+    msg:                      "{{ item.id }}"
+  loop:                       "{{ cnx_rt_info.route_tables }}"
+
+- name:                       RT ID
+  debug:
+    msg:                      "{{ item.id }}"
+  loop:                       "{{ cp_rt_info.route_tables }}"
+
+- name:                            Set up EKS/CP route tables
+  community.aws.ec2_vpc_route_table:
+    vpc_id:                        "{{ eks_vpc_id }}"
+    region:                        "{{ eks_region }}"
+    lookup:                        id
+    route_table_id:                "{{ item.1.id}}"
+    purge_routes:                  no
+    routes:
+      - dest:                      "{{ item.0.cidr_block }}"
+        vpc_peering_connection_id: "{{ vpc_peer.peering_id }}"
+  loop:                            "{{ cnx_vpc_info.vpcs[0].cidr_block_association_set| product(cp_rt_info.route_tables) | list }}"
+
+- name:                            Set up CNX route tables
+  community.aws.ec2_vpc_route_table:
+    vpc_id:                        "{{ cnx_vpc_id }}"
+    region:                        "{{ cnx_region }}"
+    lookup:                        id
+    route_table_id:                "{{ item.1.id}}"
+    purge_routes:                  no
+    routes:
+      - dest:                      "{{ item.0.cidr_block }}"
+        vpc_peering_connection_id: "{{ vpc_peer.peering_id }}"
+  loop:                            "{{ cp_vpc_info.vpcs[0].cidr_block_association_set| product(cnx_rt_info.route_tables) | list }}"

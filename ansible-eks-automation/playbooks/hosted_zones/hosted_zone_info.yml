@@ -1,0 +1,10 @@
+---
+- name: Hosted zone information
+  hosts: localhost
+  vars_prompt:
+    - name: cnx_region
+      prompt: Enter region where your cnx is deployed
+      private: no
+   
+  roles:
+    - roles/add_hosted_zone/hosted_zone_info

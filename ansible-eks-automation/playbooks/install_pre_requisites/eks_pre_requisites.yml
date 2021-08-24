@@ -1,0 +1,20 @@
+---
+- name: Configure pre-requisites required to access EKS
+  hosts: k8s_masters 
+  vars_prompt:
+    - name: aws_access_key_id
+      prompt: Enter aws access key id
+      private: yes
+    - name: aws_secret_access_key
+      prompt: Enter aws secret access key
+      private: yes
+    - name: eks_region
+      prompt: Enter eks region
+      private: no
+    - name: eks_cluster_name
+      prompt: Enter EKS cluster name
+      private: no
+  roles:
+    - roles/eks_pre_requisites/configure_aws
+    - roles/eks_pre_requisites/setup_kubectl
+    - roles/eks_pre_requisites/setup_docker_py

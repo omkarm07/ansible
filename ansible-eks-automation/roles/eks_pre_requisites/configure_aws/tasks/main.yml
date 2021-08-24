@@ -1,0 +1,33 @@
+---
+#- name: install zip and unzip
+#  become: true
+#  yum: 
+#    name: "{{ item }}"
+#    state: present
+#  with_items:
+#    - zip
+#    - unzip
+
+- name: Install AWS CLI
+  get_url:
+    url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/awscliv2.zip
+  register: aws_cli_download
+
+- name: Unarchive AWS CLI zip
+  unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp
+    copy: no
+  register: aws_cli_unarchive_zip
+
+- name: Install AWS CLI
+  shell: /tmp/aws/./install --update
+  become: yes
+ 
+- name: Configure AWS cli
+  shell: "{{ item }}"
+  loop:
+    - aws configure set aws_access_key_id "{{ aws_access_key_id }}"
+    - aws configure set aws_secret_access_key "{{ aws_secret_access_key }}"
+    - aws configure set region "{{ eks_region }}"

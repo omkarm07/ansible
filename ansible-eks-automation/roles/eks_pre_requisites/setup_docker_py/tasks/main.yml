@@ -1,0 +1,13 @@
+---
+- name: Install docker
+  become: yes
+  become_method: sudo
+  shell: "{{ item }}"
+  loop:
+    - amazon-linux-extras install docker -y
+    - service docker start
+    - usermod -a -G docker ec2-user
+
+- name: Install docker-py
+  shell: pip3 install docker-py
+  become: true

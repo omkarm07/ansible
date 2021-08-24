@@ -1,0 +1,21 @@
+---
+- name: Download kubectl binary
+  become: yes
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/v{{ __kubectl_version }}/bin/{{ __kubectl_os }}/{{ __kubectl_arch }}/kubectl"
+    dest: "{{ __kubectl_tmp_directory }}"
+
+- name: Copy kubectl binary to destination directory
+  become: yes
+  copy:
+    src: "{{ __kubectl_tmp_directory }}/{{ item }}"
+    dest: "{{ __kubectl_bin_directory }}/{{ item }}"
+    mode: "{{ __kubectl_binary_mode }}"
+    owner: "{{ __kubectl_owner }}"
+    group: "{{ __kubectl_group }}"
+    remote_src: yes
+  with_items:
+    - kubectl
+
+- name: Update eks kubeconfig
+  shell: aws eks --region "{{ eks_region }}" update-kubeconfig --name "{{ eks_cluster_name }}"

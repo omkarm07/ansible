@@ -1,0 +1,28 @@
+---
+- name:                        Getting information of VPC IDs in "{{ cnx_region }}" region
+  amazon.aws.ec2_vpc_net_info:
+    region:                    "{{ cnx_region }}"
+  register:                    cnx_vpc_info
+
+- name:                        Getting information of VPC IDs in "{{ eks_region }}" region
+  amazon.aws.ec2_vpc_net_info:
+    region:                    "{{ eks_region }}"
+  register:                    eks_vpc_info
+  when:                        cnx_region != eks_region
+
+- name:                        VPC details of "{{ cnx_region }}" region
+  debug:
+    msg: 
+      - "{% if item.tags.Name is defined %}Name: '{{ item.tags.Name }}' {% else %}Name: {% endif %}"
+      - "VPC Id: {{ item.vpc_id }}"
+  loop:                        "{{ cnx_vpc_info.vpcs }}"
+
+- name:                        VPC details of "{{ eks_region }}" region
+  debug:
+    msg: 
+      - "{% if item.tags.Name is defined %}Name: '{{ item.tags.Name }}' {% else %}Name: {% endif %}"
+      - "VPC Id: {{ item.vpc_id }}"
+  loop:                        "{{ eks_vpc_info.vpcs }}"
+  when:                        cnx_region != eks_region
+  register:                    eks_region_details
+

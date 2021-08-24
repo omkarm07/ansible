@@ -1,0 +1,44 @@
+---
+- name: Create EKS Cluster
+  hosts: localhost
+  vars_prompt:
+    - name: eks_cluster_name
+      prompt: Enter EKS cluster name?
+      private: no
+
+    - name: eks_k8s_version
+      prompt: Enter k8s verion you wish to install?
+      private: no
+    
+    - name: eks_region
+      prompt: Enter region where you want to deploy EKS cluster?
+      private: no
+     
+    - name: eks_vpc_cidr
+      prompt: Enter vpc cidr
+      private: no
+
+    - name: eks_nodegroup_name
+      prompt: Enter eks nodegroup name
+      private: no
+
+    - name: eks_node_type
+      prompt: Enter eks node type
+      private: no 
+
+    - name: eks_node_count
+      prompt: Enter eks node count
+      private: no
+
+    - name: public_key_location
+      prompt: Enter your public key location
+      private: no
+
+    - name: cnx_region
+      prompt: Enter region where your cnx is deployed
+      private: no
+   
+  roles:
+    - roles/create_eks_cluster
+    - roles/add_vpc_peering/vpc_info
+    - roles/add_hosted_zone/hosted_zone_info

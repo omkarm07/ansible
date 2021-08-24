@@ -1,0 +1,38 @@
+---
+- name: Create Master node
+  hosts: localhost
+  tasks:
+  - name: GET SG & Subnet info 
+    shell: eksctl get cluster --region us-west-2 --name eks-testing-omkar
+    register: eks_details
+  
+  - set_fact:
+      eks: "{{ eks_details.stdout_lines[3].split(',')[0].split()[4]}}"
+
+  - name: EKS details
+    debug:
+      var: eks
+
+  - name: Subnet details
+    ec2_vpc_subnet_info:
+      region: us-west-2
+      filters:
+        vpc-id: "{{ eks }}"
+    register: eks_subnets
+   
+  - name: SG details
+    ec2_group_info:
+      region: us-west-2
+      filters:
+        vpc-id: "{{ eks }}"
+    register: eks_sg
+
+  - debug:
+      msg: "public_subnet_id: '{{ item.subnet_id }}'"
+    loop: "{{ eks_subnets.subnets }}"
+    when: item.map_public_ip_on_launch == True
+ 
+  - debug:
+      msg: "SG_Id: '{{ item.group_id }}'"
+    loop: "{{ eks_sg.security_groups }}"
+    when: item.description == "Allow SSH access"

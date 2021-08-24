@@ -1,0 +1,12 @@
+---
+- name:                        List all hosted zones
+  community.aws.route53_info:
+    query:                     hosted_zone
+    region:                    "{{ cnx_region }}"
+  register:                    hosted_zones
+
+- debug:
+    msg: 
+      - "HostedZone Name: {{ item.Name }}" 
+      - "HostedZone Id  : {{ item.Id }}"
+  loop: "{{ hosted_zones.HostedZones }}"

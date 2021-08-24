@@ -1,0 +1,16 @@
+---
+- name: Adding EKS VPC Id into Hosted Zone
+  hosts: localhost
+  vars_prompt:
+  - name: eks_vpc_id
+    prompt: Enter EKS VPC Id
+    private: no
+  - name: eks_region
+    prompt: Enter region where EKS is deployed
+    private: no
+  - name: hosted_zone_id
+    prompt: Enter hosted zone id where you want to add EKS vpc id
+    private: no
+
+  roles:
+    - roles/add_hosted_zone/add_eks_vpc_to_hosted_zone

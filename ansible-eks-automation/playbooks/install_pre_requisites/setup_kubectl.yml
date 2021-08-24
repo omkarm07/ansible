@@ -1,0 +1,12 @@
+---
+- name: Setting up kubectl
+  hosts: k8s_masters 
+  vars_prompt:
+    - name: eks_region
+      prompt: Enter region where EKS is deployed
+      private: no
+    - name: eks_cluster_name
+      prompt: Enter EKS cluster name
+      private: no
+  roles:
+    - roles/eks_pre_requisites/setup_kubectl

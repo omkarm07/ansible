@@ -1,0 +1,15 @@
+---
+- name: Configure AWS 
+  hosts: k8s_masters 
+  vars_prompt:
+    - name: aws_access_key_id
+      prompt: Enter aws access key id
+      private: yes
+    - name: aws_secret_access_key
+      prompt: Enter aws secret access key
+      private: yes
+    - name: eks_region
+      prompt: Enter eks region
+      private: no
+  roles:
+    - roles/eks_pre_requisites/configure_aws

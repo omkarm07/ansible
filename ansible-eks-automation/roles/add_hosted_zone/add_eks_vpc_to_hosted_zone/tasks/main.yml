@@ -1,0 +1,3 @@
+---
+- name:                Create a private zone
+  shell:               aws route53 associate-vpc-with-hosted-zone --hosted-zone-id "{{ hosted_zone_id }}" --vpc VPCRegion="{{eks_region}}",VPCId="{{eks_vpc_id}}"

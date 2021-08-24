@@ -1,0 +1,18 @@
+---
+__kubectl_version:           "1.20.2"
+
+__kubectl_download_filetype: "binary"
+
+__kubectl_bin_directory:     "/usr/local/bin"
+
+__kubectl_tmp_directory:     "/tmp"
+
+__kubectl_owner:             "root"
+
+__kubectl_group:             "root"
+
+__kubectl_binary_mode:       "0755"
+
+__kubectl_os:                "linux" 
+
+__kubectl_arch:              "amd64" 

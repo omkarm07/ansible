@@ -1,0 +1,21 @@
+---
+- name: Create EKS Cluster
+  hosts: localhost
+  vars_prompt:
+    - name: cnx_region
+      prompt: Enter region where your cnx is deployed
+      private: no
+   
+    - name: cnx_vpc_id
+      prompt: Enter cnx vpc id
+      private: no
+
+    - name: eks_region
+      prompt: Enter region where your eks cluster is deployed
+      private: no
+   
+    - name: eks_vpc_id
+      prompt: Enter eks vpc id
+      private: no
+  roles:
+    - roles/add_vpc_peering/vpc_peering

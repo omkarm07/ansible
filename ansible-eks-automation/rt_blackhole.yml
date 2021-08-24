@@ -1,0 +1,25 @@
+---
+- name: Blackhole
+  hosts: localhost
+  tasks:
+  - name: Find blackholes in RT
+    ec2_vpc_route_table_facts:
+      region: us-east-2
+      filters:
+        route.state: blackhole
+    #command: aws ec2 describe-route-tables --region us-east-2 --filters Name=route.state,Values=blackhole
+    register: blackhole
+
+  - name: Blackhole RTs
+    debug:
+      var: blackhole
+
+  - name: Blackhole RTs
+    debug:
+      msg: "{{ item.id }}"
+    loop: "{{ blackhole.route_tables }}"
+  
+  - name: Blackhole RTs
+    debug:
+      msg: "CIDR: {{ item.destination_cidr_block}} State: {{ item.state }}"
+    loop: "{{ blackhole.route_tables[0].routes }}"

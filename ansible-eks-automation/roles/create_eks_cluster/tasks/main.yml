@@ -1,0 +1,63 @@
+---
+# if you try to define a variable that contains a dash, ansible will throw an error saying that variable names cannot contain dashes
+# As our user input has dash '-' it throws error so manupulating user input
+#
+- name:                      Replacing - with _ in regions variable
+  debug:
+    var:                     "{{ eks_region | replace('-','_') }}"
+  register:                  user_eks_region
+
+- name:                      Creating list of region with '_'
+  set_fact:
+    new_eks_region:          '{{  user_eks_region.keys() | list }}'
+
+- set_fact:
+    eks_region_manipulated:  "{{ new_eks_region | reject('search', 'failed') | reject('search', 'changed') | list }}"
+
+- debug:
+    var:                     eks_region_manipulated
+
+- name:                      Getting list of all AWS Regions
+  command:                   "aws ec2 describe-regions"
+  register:                  json_out
+
+- name:                      Registering json output
+  set_fact:
+    region_json:             "{{json_out.stdout | from_json}}"
+    region_list:             []
+
+- name:                      Print regions
+  debug:
+    msg:                     "{{item.RegionName}}"
+  with_items:                "{{region_json.Regions }}"
+
+- name:                      Creates actual list of only region names
+  set_fact:
+    region_list:             "{{region_list + [item.RegionName] }}"
+  with_items:                "{{region_json.Regions}}"
+
+- name:                      Replacing - with _ in regions variable
+  debug:
+    msg:                     "{{ item | replace('-','_') }}"
+  loop:                      "{{ region_list }}"
+  register:                  regions
+    
+- name:                      List of regions
+  set_fact: 
+    list_of_regions:         '{{ regions.results |map(attribute="msg")|list }}'
+
+- assert:
+    that:                    eks_region_manipulated[0] in list_of_regions
+    fail_msg:                "Accepted regions are {{ region_list }}"
+
+- assert:
+    that:                    eks_vpc_cidr in __cidr_range
+    fail_msg:                "Accepted cidr ranges can be {{ __cidr_range }}. Netmask should be in range from /16 to /24"
+
+- name:                      Create eks cluster using eksctl
+  shell:                     eksctl create cluster --name "{{ eks_cluster_name }}" --version "{{ eks_k8s_version }}" --region "{{ eks_region }}" --vpc-cidr "{{ eks_vpc_cidr }}"  --nodegroup-name "{{ eks_nodegroup_name }}" --node-type "{{ eks_node_type }}" --nodes "{{ eks_node_count }}" --ssh-access --ssh-public-key "{{ public_key_location }}" --managed
+  register:                  eks_info
+
+- name:                      EKS cluster information
+  debug:
+    var:                     eks_info

@@ -1,0 +1,6 @@
+---
+- name: Create master ec2 instance
+  hosts: localhost
+  roles:
+    - roles/create_master_node
+

@@ -1,0 +1,40 @@
+---
+- name: Create EKS Cluster
+  hosts: localhost
+  vars_prompt:
+    - name: eks_cluster_name
+      prompt: Enter EKS cluster name?
+      private: no
+
+    - name: eks_region
+      prompt: Enter region where you want to deploy EKS cluster?
+      private: no
+
+    - name: public_subnet_id
+      prompt: Enter public subnet id where you want to create node?
+      private: no
+
+    - name: ssh_sg_group
+      prompt: Enter security group id which allows ssh?
+      private: no
+  
+  tasks:
+    - name: start an instance and Add EBS
+      ec2_instance:
+        name: "master-testing"
+        region: "{{ eks_region }}"
+        vpc_subnet_id: "{{ public_subnet_id }}"
+        security_groups: "{{ ssh_sg_group }}"
+#        image_id: ami-077e31c4939f6a2f3
+        image_id: ami-0cf6f5c8a62fa5da6
+        instance_type: m5.2xlarge
+        key_name: "omkarmangalekar"
+        volumes:
+        - device_name: /dev/xvda
+          ebs:
+            volume_size: 80
+            delete_on_termination: true
+        wait: yes
+        tags:
+          Owner: Omkar
+          Environment: Testing

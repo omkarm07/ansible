@@ -1,0 +1,5 @@
+---
+- name: Setting up docker
+  hosts: k8s_masters 
+  roles:
+    - roles/eks_pre_requisites/setup_docker_py
